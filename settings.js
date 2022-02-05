@@ -1,65 +1,50 @@
+let todo_list_element = document.querySelector('#list')
+const ls_key = "ls-todo-list-xyz";
 
-let SuccessLiveToast = document.querySelector("#liveToast_success")
-let ErrorLiveToast = document.querySelector("#liveToast_error")
-
-let closeBtn = document.querySelectorAll('.close')
-console.log(closeBtn)
-closeBtn[0].addEventListener('click',closeLiveToast)
-closeBtn[1].addEventListener('click',closeLiveToast)
-function closeLiveToast(event){
-    ErrorLiveToast.classList.replace('show','hide')
-    SuccessLiveToast.classList.replace('show','hide')
+function loadPage() {
+    let all_ls_todo = getLS(ls_key)
+    all_ls_todo.forEach(element => {
+        createNewTodo(element)
+    });
 }
-let inputDOM = document.querySelector('#task')
-let allLiDOM = document.querySelectorAll('li')
-console.log(allLiDOM)
+loadPage();
 
-let BtnDOM = document.querySelector('#liveToastBtn')
-
-
-BtnDOM.addEventListener('onclick', newElement)
-
-inputDOM.addEventListener('keydown', (event) => {
-    if (event.key === "Enter") {
-        newElement()
-    }
-})
-
-let ulDOM = document.querySelector('#list')
-
-
-
-function newElement(event) {
-
-    if (inputDOM.value.trim() == '') {
-        ErrorLiveToast.classList.replace('hide', 'show')
-        inputDOM.value = ""
+function handleForm(event) {
+    event.preventDefault();
+    let new_todo = event.target.new_todo.value;
+    if (new_todo == "") {
+        alert("Lütfen bir değer giriniz!")
     } else {
-        let liDOM = document.createElement('li')
-        let newSpan = document.createElement('span')
-        newSpan.innerText = "X"
-        liDOM.innerHTML = inputDOM.value
-        ulDOM.append(liDOM)
-        liDOM.append(newSpan)
-        inputDOM.value = ""
-        SuccessLiveToast.classList.replace('hide', 'show')
-
-        liDOM.addEventListener('click', addClass)
-        newSpan.addEventListener('click', deleteTask)
+        createNewTodo(new_todo)
+        var ls_todo_list = getLS(ls_key)
+        ls_todo_list.unshift(new_todo)
+        setLS(ls_key,ls_todo_list)
+        event.target.new_todo.value = "";
     }
 }
-
-allLiDOM.forEach(item => item.addEventListener('click', addClass))
-
-function addClass(event) {
-    this.className == "checked" ? this.classList.remove("checked") : this.classList.add("checked")
-
+function deleteTodoItem(event) {
+    var ls_todo_list = getLS(ls_key)
+    let deletedTodo = event.path[1].childNodes[0].nodeValue.trim()
+    var newList = ls_todo_list.filter(todo => todo !=deletedTodo)
+    event.path[1].remove()
+    setLS(ls_key,newList)
 }
-console.log(allLiDOM)
-
-let spanDOM = document.querySelectorAll('ul#list>li>span')
-spanDOM.forEach(item => item.addEventListener('click', deleteTask))
-function deleteTask(event) {
-
-    this.parentElement.remove();
+function createNewTodo(todo_str) {
+    new_todo_element = document.createElement("li")
+    new_todo_element.innerHTML = `
+            ${todo_str} <span onclick="deleteTodoItem(event)" >X</span>
+        `
+    new_todo_element.addEventListener('click', addCheckedClass)
+    todo_list_element.appendChild(new_todo_element)
+}
+function setLS(key, value) {
+    var strObj = JSON.stringify(value)
+    localStorage.setItem(key, strObj)
+}
+function getLS(key) {
+    var str = localStorage.getItem(key)
+    return str==null ? [] : JSON.parse(str)
+}
+function addCheckedClass(){
+    this.className == "checked" ? this.classList.remove("checked") : this.classList.add("checked")
 }
